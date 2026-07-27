@@ -1,0 +1,16 @@
+# AllDown backend
+# Python 3.11+
+
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.5
+pydantic-settings==2.7.1
+python-multipart==0.0.20
+python-dotenv==1.0.1
+httpx==0.28.1
+cachetools==5.5.1
+slowapi==0.1.9
+
+# Extraction engine. Pin loosely and update often — platform changes break
+# extraction and the fix is almost always a newer yt-dlp release.
+yt-dlp>=2026.7.4

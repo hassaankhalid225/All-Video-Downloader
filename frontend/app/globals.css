@@ -1,0 +1,239 @@
+﻿@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================================================
+   Tokens
+   ========================================================================== */
+
+:root {
+  --bg-primary: #080810;
+  --bg-secondary: #0f0f1a;
+  --bg-tertiary: #16162a;
+  --border: #1e1e35;
+
+  --text-primary: #f0f0ff;
+  --text-secondary: #8888aa;
+  --text-muted: #444466;
+
+  --brand: #7c3aed;
+  --brand-light: #a855f7;
+  --brand-glow: rgba(124, 58, 237, 0.3);
+
+  --success: #10b981;
+  --error: #ef4444;
+  --warning: #f59e0b;
+
+  /* The signature. Rewritten on <html> when a platform is detected, which re-tints the
+     input ring, the caret, the format cards and the CTA in one assignment. */
+  --accent: var(--brand);
+  --accent-light: var(--brand-light);
+  --accent-glow: var(--brand-glow);
+  --accent-soft: rgba(124, 58, 237, 0.12);
+  /* Solid controls get their own pair of the accent, deepened until 14px label text
+     clears 4.5:1. Brand colours are picked for logos, not for filled buttons — white on
+     YouTube red is 4.0:1 and white on Snapchat yellow is unreadable. The undeepened
+     --accent stays in use for glows, borders and icons on the dark background. */
+  --accent-cta: var(--brand);
+  --accent-cta-deep: #5b28b0;
+  --accent-fg: #ffffff;
+
+  --nav-height: 4rem;
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+
+@layer base {
+  * {
+    @apply border-edge;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-bg-primary font-sans text-content-secondary antialiased;
+    /* The orbs live in a fixed layer; without this the page paints white during
+       overscroll on iOS. */
+    background-color: var(--bg-primary);
+    text-rendering: optimizeLegibility;
+  }
+
+  h1, h2, h3, h4 {
+    @apply text-content-primary;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* One focus treatment everywhere, in whatever the current accent is. */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  input::placeholder {
+    @apply text-content-muted;
+  }
+
+  /* Firefox and WebKit disagree by ~8px on scrollbar-driven layout shift. */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--bg-tertiary);
+    border-radius: 999px;
+    border: 2px solid var(--bg-primary);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #26264a;
+  }
+}
+
+/* ==========================================================================
+   Components
+   ========================================================================== */
+
+@layer components {
+  .container-page {
+    @apply mx-auto w-full max-w-6xl px-5 sm:px-8;
+  }
+
+  /* Machine-readable values: URLs, byte counts, durations, resolutions, format ids.
+     The mono/sans split is the type personality of the whole product. */
+  .metric {
+    @apply font-mono text-[0.8125rem] tabular-nums tracking-tight;
+  }
+
+  .eyebrow {
+    @apply font-mono text-[0.6875rem] uppercase tracking-[0.18em] text-content-muted;
+  }
+
+  .surface {
+    @apply rounded-2xl border border-edge bg-bg-secondary;
+  }
+
+  .grid-overlay {
+    background-image:
+      linear-gradient(to right, rgba(124, 58, 237, 0.055) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(124, 58, 237, 0.055) 1px, transparent 1px);
+    background-size: 56px 56px;
+    /* Fade the grid out before it reaches the fold so it reads as atmosphere. */
+    mask-image: radial-gradient(ellipse 80% 55% at 50% 32%, #000 20%, transparent 78%);
+    -webkit-mask-image: radial-gradient(ellipse 80% 55% at 50% 32%, #000 20%, transparent 78%);
+  }
+
+  .text-gradient-brand {
+    background: linear-gradient(100deg, var(--brand) 0%, var(--brand-light) 55%, #d8b4fe 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    /* Descenders clip without this when the gradient box hugs the glyph box. */
+    padding-bottom: 0.06em;
+  }
+
+  .marquee-mask {
+    mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+  }
+}
+
+/* ==========================================================================
+   Utilities
+   ========================================================================== */
+
+@layer utilities {
+  .clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Promotes to its own layer so the drifting orbs never repaint the text above them. */
+  .gpu {
+    transform: translateZ(0);
+    will-change: transform;
+  }
+}
+
+/* ==========================================================================
+   Hero particles
+
+   Twenty of these drift up the hero continuously. Driving them from JavaScript meant
+   twenty independent animation loops running for as long as the page was open; as pure
+   CSS they run on the compositor and cost the main thread nothing. Per-particle timing
+   comes in as custom properties so every one still has its own rhythm.
+   ========================================================================== */
+
+@keyframes float-up {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0);
+  }
+  15% {
+    opacity: 0.5;
+  }
+  75% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--drift, 0px), -180px, 0);
+  }
+}
+
+.particle {
+  animation: float-up var(--duration, 24s) linear var(--delay, 0s) infinite;
+  will-change: transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .particle {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   Reduced motion
+
+   Opacity transitions survive — they carry state information. Transforms and the
+   ambient loops stop, because those are decoration.
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,14 @@
+# ffmpeg is not optional. Without it there is no MP3 conversion and no muxed
+# high-resolution video — which is most of YouTube above 720p.
+[phases.setup]
+nixPkgs = ["python311", "ffmpeg"]
+
+[phases.install]
+cmds = [
+  "python -m venv /opt/venv",
+  ". /opt/venv/bin/activate && pip install --upgrade pip",
+  ". /opt/venv/bin/activate && pip install -r requirements.txt",
+]
+
+[start]
+cmd = ". /opt/venv/bin/activate && uvicorn main:app --host 0.0.0.0 --port $PORT --workers 2"

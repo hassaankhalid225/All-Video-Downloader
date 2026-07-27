@@ -1,0 +1,18 @@
+[build]
+builder = "nixpacks"
+
+[deploy]
+startCommand = "uvicorn main:app --host 0.0.0.0 --port $PORT --workers 2"
+healthcheckPath = "/api/health"
+healthcheckTimeout = 30
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 5
+
+# yt-dlp breaks whenever a platform changes how it serves media, and the fix is almost
+# always a newer release. Reinstalling on every deploy keeps the engine current without a
+# code change; pair it with a weekly redeploy.
+[build.nixpacksPlan.phases.setup]
+nixPkgs = ["python311", "ffmpeg"]
+
+[build.nixpacksPlan.phases.install]
+cmds = ["pip install --upgrade pip", "pip install -r requirements.txt --upgrade"]

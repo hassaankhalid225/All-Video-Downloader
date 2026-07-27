@@ -1,0 +1,75 @@
+# ---------- Secrets / local config ----------
+.env
+.env.*
+!.env.example
+!.env.*.example
+cookies.txt
+*.pem
+*.key
+secrets.json
+
+# ---------- Python (backend) ----------
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+.tox/
+*.egg-info/
+dist/
+build/
+pip-wheel-metadata/
+
+# ---------- Node / Next.js (frontend) ----------
+node_modules/
+.next/
+out/
+.turbo/
+.vercel/
+next-env.d.ts
+*.tsbuildinfo
+.eslintcache
+.pnp.*
+.yarn/cache
+.yarn/install-state.gz
+
+# ---------- Build / runtime output ----------
+downloads/
+tmp/
+temp/
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Media artifacts produced by the downloader (keep committed assets in public/)
+/backend/**/*.mp4
+/backend/**/*.mp3
+/backend/**/*.m4a
+/backend/**/*.webm
+/backend/**/*.part
+
+# ---------- OS / editor ----------
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*~
+.idea/
+.vscode/
+
+# ---------- Misc ----------
+.claude/
+*.bak
+*.orig
