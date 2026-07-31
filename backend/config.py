@@ -74,6 +74,17 @@ class Settings:
 
     temp_dir: str | None = field(default_factory=lambda: os.getenv("TEMP_DIR") or None)
 
+    # Public origin of this API, e.g. https://api.alldown.app.
+    #
+    # When set, `/api/file` links are handed out as absolute URLs so the browser fetches
+    # media straight from here. Left unset they stay relative and the frontend proxies
+    # them, which is right for local development and wrong for production: proxying video
+    # through a serverless function pays for every byte twice and, worse, dies at that
+    # platform's request-duration ceiling — a slow connection gets a truncated file.
+    public_base_url: str | None = field(
+        default_factory=lambda: (os.getenv("PUBLIC_BASE_URL") or "").rstrip("/") or None
+    )
+
     # Prime the extractor caches at boot so the first visitor after a deploy does not pay
     # for downloading and parsing YouTube's player JavaScript. Costs one request at start.
     warm_up: bool = field(default_factory=lambda: _env_bool("WARM_UP", True))

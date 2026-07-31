@@ -743,7 +743,7 @@ async def get_metadata(url: str) -> VideoMetadata:
             continue
         filename = build_filename(extraction, internal)
         token, signature, _ = tokens.issue(extraction.url, internal.id, filename)
-        option.downloadUrl = f"/api/file?t={token}&s={signature}"
+        option.downloadUrl = file_url(token, signature)
         option.filename = filename
 
     return metadata
@@ -776,6 +776,17 @@ async def resolve_format(
     if internal is None:
         raise FormatNotAvailableError()
     return extraction, internal
+
+
+def file_url(token: str, signature: str) -> str:
+    """The URL the browser should fetch media from.
+
+    Absolute once ``PUBLIC_BASE_URL`` is configured, so bytes travel straight from this
+    service to the user instead of through the frontend's serverless proxy. Relative
+    otherwise, which keeps local development working through the Next.js dev server.
+    """
+    path = f"/api/file?t={token}&s={signature}"
+    return f"{settings.public_base_url}{path}" if settings.public_base_url else path
 
 
 def build_filename(extraction: Extraction, internal: InternalFormat) -> str:

@@ -221,6 +221,44 @@ class TestMetadata:
         second = client.post("/api/metadata", json={"url": TIKTOK_URL}).json()["formats"]
         assert first[0]["downloadUrl"] and second[0]["downloadUrl"]
 
+    def test_download_urls_are_absolute_when_a_public_origin_is_set(
+        self, client, stub_extraction, monkeypatch
+    ):
+        """In production the browser must fetch media from the API, not through the proxy.
+
+        Routing video through the frontend's serverless functions pays for every byte
+        twice and dies at the platform's request-duration ceiling, which hands a slow
+        connection a truncated file.
+        """
+        import dataclasses
+
+        from config import settings
+        from services import downloader
+
+        # Settings is frozen, so swap in a modified copy on the module that reads it.
+        # routers/download.py delegates to downloader.file_url, so this covers both paths.
+        monkeypatch.setattr(
+            downloader,
+            "settings",
+            dataclasses.replace(settings, public_base_url="https://api.example.com"),
+        )
+
+        formats = client.post("/api/metadata", json={"url": TIKTOK_URL}).json()["formats"]
+        assert all(f["downloadUrl"].startswith("https://api.example.com/api/file?t=") for f in formats)
+
+        authorised = client.post(
+            "/api/download", json={"url": TIKTOK_URL, "format_id": formats[0]["id"]}
+        ).json()
+        assert authorised["download_url"].startswith("https://api.example.com/api/file?t=")
+
+        # And the helper itself, without the HTTP layer in the way.
+        assert downloader.file_url("t", "s") == "https://api.example.com/api/file?t=t&s=s"
+
+    def test_download_urls_stay_relative_by_default(self, client, stub_extraction):
+        """Unset means local development, where the frontend proxy is the right path."""
+        formats = client.post("/api/metadata", json={"url": TIKTOK_URL}).json()["formats"]
+        assert all(f["downloadUrl"].startswith("/api/file?t=") for f in formats)
+
     def test_sends_rate_limit_headers(self, client, stub_extraction):
         response = client.post("/api/metadata", json={"url": TIKTOK_URL})
         assert "x-ratelimit-limit" in response.headers

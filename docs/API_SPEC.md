@@ -128,8 +128,11 @@ Does not transfer bytes.
 }
 ```
 
-`download_url` is relative. The frontend resolves it against its own origin so the browser
-hits the Next.js proxy, never the backend host.
+`download_url` is relative when `PUBLIC_BASE_URL` is unset, so a local frontend resolves it
+against its own origin and proxies. Once `PUBLIC_BASE_URL` is configured it is absolute
+(`https://api.example.com/api/file?t=…`) and the browser fetches the media directly — see
+the media exception in `ARCHITECTURE.md`. The same applies to the `downloadUrl` carried on
+each entry of the metadata response.
 
 **Errors** — as above, plus 404 `FORMAT_NOT_AVAILABLE` when `format_id` no longer resolves
 (the extraction expired and the platform re-issued different formats).

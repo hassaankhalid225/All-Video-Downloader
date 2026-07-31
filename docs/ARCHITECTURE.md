@@ -23,10 +23,17 @@
                         /api/file?token=… proxies the CDN
 ```
 
-Three tiers, one hard rule: **the browser never talks to the FastAPI service directly**.
-Next.js route handlers proxy every call. That keeps the backend origin out of the client
-bundle, lets us set our own CORS/caching policy, and means the API base URL can rotate
-without a frontend redeploy.
+Next.js route handlers proxy the JSON calls. That keeps the backend origin out of the
+client bundle, lets us set our own CORS policy, and means the API base URL can rotate
+without a frontend redeploy. Those payloads are kilobytes, so the extra hop is free.
+
+**Media is the exception, and deliberately so.** In production (`PUBLIC_BASE_URL` set) the
+`/api/file` links handed out are absolute and the browser fetches bytes straight from the
+API. Proxying video through a serverless function fails twice over: every byte is billed
+on both platforms, and the function's request-duration ceiling — 300 seconds on Vercel Pro,
+and not liftable by paying more — truncates any download slower than about 8 Mbps on a
+large file. Hiding the origin was never a security control; the signed token, the rate
+limiter and the SSRF guard are.
 
 ---
 

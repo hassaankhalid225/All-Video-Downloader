@@ -42,7 +42,7 @@ async def create_download(
     log.info("download authorised platform=%s format=%s", extraction.platform_id, internal.id)
 
     return DownloadResult(
-        download_url=f"/api/file?t={token}&s={signature}",
+        download_url=downloader.file_url(token, signature),
         filename=filename,
         filesize=internal.filesize,
         mime_type=internal.mime,

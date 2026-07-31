@@ -136,6 +136,7 @@ Backend (`backend/.env`) — see [.env.example](backend/.env.example) for all of
 | Variable | Default | Notes |
 | --- | --- | --- |
 | `ALLOWED_ORIGINS` | `http://localhost:3000` | Comma-separated |
+| `PUBLIC_BASE_URL` | — | **Set in production.** e.g. `https://api.yourdomain.com`. See below |
 | `SECRET_KEY` | generated | **Set in production.** Signs `/api/file` tokens; unset means they die on restart |
 | `RATE_LIMIT_PER_MINUTE` | `20` | Metadata requests per IP |
 | `MAX_DOWNLOAD_SIZE_MB` | `500` | Transfer ceiling |
@@ -154,11 +155,28 @@ Frontend (`frontend/.env.local`):
 ## Deploy
 
 **Backend → Railway.** `backend/railway.toml` is ready; it installs ffmpeg through nixpacks
-and health-checks `/api/health`. Set `SECRET_KEY` and `ALLOWED_ORIGINS`. A `Dockerfile` is
-there for anywhere else.
+and health-checks `/api/health`. Set `SECRET_KEY`, `ALLOWED_ORIGINS` and `PUBLIC_BASE_URL`.
+A `Dockerfile` is there for anywhere else.
 
-**Frontend → Vercel.** `frontend/vercel.json` sets the function timeouts the file proxy
-needs. Set `API_URL` and `NEXT_PUBLIC_SITE_URL`.
+**Frontend → Vercel.** Set `API_URL` and `NEXT_PUBLIC_SITE_URL`. Point the apex domain at
+Vercel and an `api.` subdomain at Railway.
+
+### Do not let video through the frontend proxy
+
+`PUBLIC_BASE_URL` is the one production setting that is not optional. Without it,
+`/api/file` links stay relative and every byte is streamed through a Vercel function.
+Two things go wrong:
+
+- **You pay for the same bytes twice** — once as Railway egress, once as Vercel egress.
+- **Large downloads are truncated.** Vercel Pro caps a function at 300 seconds. A 275 MB
+  file needs 440 s on a 5 Mbps connection, so anyone slower than roughly 8 Mbps gets a
+  corrupt file. This is a plan ceiling, not a billing tier — paying more does not lift it.
+
+Set `PUBLIC_BASE_URL=https://api.yourdomain.com` and the browser fetches media straight
+from Railway. The JSON endpoints keep going through the proxy, where the payloads are
+kilobytes and the round trip is worth it. CORS on the backend already exposes
+`Content-Disposition` and `Content-Length`, which is what the browser needs to name the
+file and show progress.
 
 **Thumbnails need `sharp`.** Video thumbnails are served through Next's image optimizer
 rather than loaded directly, because TikTok and Instagram CDNs reject hot-linked requests
